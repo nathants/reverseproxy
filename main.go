@@ -9,7 +9,6 @@ import (
 
 	"github.com/alexflint/go-arg"
 	"github.com/valyala/fasthttp"
-	"github.com/valyala/fasthttp/fasthttpproxy"
 )
 
 var (
@@ -30,7 +29,11 @@ var hopHeaders = []string{
 }
 
 func handler(ctx *fasthttp.RequestCtx) {
-	c := &fasthttp.Client{Dial: fasthttpproxy.FasthttpProxyHTTPDialerTimeout(timeout)}
+	c := fasthttp.Client{
+		Dial: func(addr string) (net.Conn, error) {
+			return fasthttp.DialTimeout(addr, timeout)
+		},
+	}
 	req := fasthttp.AcquireRequest()
 	res := fasthttp.AcquireResponse()
 	defer func() {
@@ -73,12 +76,12 @@ type args struct {
 	TimeoutSeconds int      `arg:"-t,--timeout" default:"5"`
 	SSLCert        string   `arg:"-c,--ssl-cert"`
 	SSLKey         string   `arg:"-k,--ssl-key"`
-	Upstream       []string `arg:"-u,--upstream" help:"may specify upstreams: -u foo.com=localhost:8080 bar.com=localhost:8081"`
-	BufferSize     int      `default:"16384" help:"fasthttp.Server.{Read,Write}BufferSize"`
+	Upstream       []string `arg:"-u,--upstream" help:"may specify multiple upstreams: -u a.foo.com=localhost:8080 b.foo.com=localhost:8081"`
+	BufferSize     int      `arg:"-b,--buffer" default:"16384" help:"fasthttp.Server.{Read,Write}BufferSize"`
 }
 
 func (*args) Description() string {
-	return "\na reverse proxy for one or more http upstreams behind a single wildcard certificate\n"
+	return "\nreverse proxy one or more http upstreams behind a wildcard certificate\n"
 }
 
 func main() {
