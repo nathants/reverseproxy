@@ -44,7 +44,7 @@ func handler(ctx *fasthttp.RequestCtx) {
 	fmt.Println(res.StatusCode(), string(req.Header.Method()), req.URI())
 }
 
-var args struct {
+type args struct {
 	Addr           string   `arg:"-a,--addr" default:":443"`
 	TimeoutSeconds int      `arg:"-t,--timeout" default:"5"`
 	SSLCert        string   `arg:"-c,--ssl-cert"`
@@ -52,22 +52,27 @@ var args struct {
 	Upstream       []string `arg:"-u,--upstream" help:"may specify multiple times. --upstream example.com=localhost:8080"`
 }
 
+func (*args) Description() string {
+	return "\na reverse proxy for one or more http upstreams behind a single wildcard certificate\n"
+}
+
 func main() {
-	arg.MustParse(&args)
-	timeout = time.Duration(args.TimeoutSeconds) * time.Second
-	for _, upstreamArg := range args.Upstream {
+	a := args{}
+	arg.MustParse(&a)
+	timeout = time.Duration(a.TimeoutSeconds) * time.Second
+	for _, upstreamArg := range a.Upstream {
 		parts := strings.SplitN(upstreamArg, "=", 2)
 		domain := parts[0]
 		upstream := parts[1]
 		upstreams[domain] = upstream
 	}
 	var err error
-	if args.SSLKey != "" && args.SSLCert != "" {
-		fmt.Println("serve tls:", args.SSLKey, args.SSLCert, args.Addr)
-		err = fasthttp.ListenAndServeTLS(args.Addr, args.SSLCert, args.SSLKey, handler)
+	if a.SSLKey != "" && a.SSLCert != "" {
+		fmt.Println("serve tls:", a.SSLKey, a.SSLCert, a.Addr)
+		err = fasthttp.ListenAndServeTLS(a.Addr, a.SSLCert, a.SSLKey, handler)
 	} else {
-		fmt.Println("serve:", args.Addr)
-		err = fasthttp.ListenAndServe(args.Addr, handler)
+		fmt.Println("serve:", a.Addr)
+		err = fasthttp.ListenAndServe(a.Addr, handler)
 	}
 	if err != nil {
 		panic(err)
