@@ -38,7 +38,7 @@ func handler(ctx *fasthttp.RequestCtx) {
 	err := c.DoTimeout(req, res, timeout)
 	if err != nil {
 		ctx.SetStatusCode(500)
-		fmt.Println("err: upstream did not respond: %s", err)
+		fmt.Println("err: upstream did not respond:", err)
 		return
 	}
 	res.CopyTo(&ctx.Response)
