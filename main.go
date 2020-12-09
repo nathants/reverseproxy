@@ -28,7 +28,7 @@ func handler(ctx *fasthttp.RequestCtx) {
 	upstream, ok := upstreams[host]
 	if !ok {
 		ctx.SetStatusCode(404)
-		fmt.Printf("err: no upstream available for host: %s\n", host)
+		fmt.Printf("err: no upstream available for host: %s, available: %#v\n", host, upstreams)
 		return
 	}
 	ctx.Request.CopyTo(req)
@@ -65,6 +65,7 @@ func main() {
 		domain := parts[0]
 		upstream := parts[1]
 		upstreams[domain] = upstream
+		fmt.Printf("add upstream '%s' => '%s'\n", domain, upstream)
 	}
 	var err error
 	if a.SSLKey != "" && a.SSLCert != "" {
