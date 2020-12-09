@@ -1,6 +1,7 @@
 package main
 
 import (
+	"os"
 	"fmt"
 	"strings"
 	"time"
@@ -28,7 +29,7 @@ func handler(ctx *fasthttp.RequestCtx) {
 	upstream, ok := upstreams[host]
 	if !ok {
 		ctx.SetStatusCode(404)
-		fmt.Printf("err: no upstream available for host: %s, available: %#v\n", host, upstreams)
+		fmt.Println("err: no upstream available for host:", host)
 		return
 	}
 	ctx.Request.CopyTo(req)
@@ -37,7 +38,7 @@ func handler(ctx *fasthttp.RequestCtx) {
 	err := c.DoTimeout(req, res, timeout)
 	if err != nil {
 		ctx.SetStatusCode(500)
-		fmt.Printf("err: upstream did not respond: %s\n", err)
+		fmt.Println("err: upstream did not respond: %s", err)
 		return
 	}
 	res.CopyTo(&ctx.Response)
@@ -49,7 +50,7 @@ type args struct {
 	TimeoutSeconds int      `arg:"-t,--timeout" default:"5"`
 	SSLCert        string   `arg:"-c,--ssl-cert"`
 	SSLKey         string   `arg:"-k,--ssl-key"`
-	Upstream       []string `arg:"-u,--upstream" help:"may specify multiple times. --upstream example.com=localhost:8080"`
+	Upstream       []string `arg:"-u,--upstream" help:"may specify upstreams: -u foo.com=localhost:8080 bar.com=localhost:8081"`
 }
 
 func (*args) Description() string {
@@ -57,6 +58,17 @@ func (*args) Description() string {
 }
 
 func main() {
+	count := 0
+	for _, val := range os.Args {
+		if val == "-u" || val == "--upstream" {
+			count ++
+		}
+	}
+	if count > 1 {
+		fmt.Println("fatal: do not specify -u multiple times, specify it ones with space seperated values")
+		fmt.Println("example: reverseproxy -u foo.com=localhost:8080 bar.com=localhost:8081")
+		os.Exit(1)
+	}
 	a := args{}
 	arg.MustParse(&a)
 	timeout = time.Duration(a.TimeoutSeconds) * time.Second
@@ -65,7 +77,7 @@ func main() {
 		domain := parts[0]
 		upstream := parts[1]
 		upstreams[domain] = upstream
-		fmt.Printf("add upstream '%s' => '%s'\n", domain, upstream)
+		fmt.Printf("upstream: %s => %s\n", domain, upstream)
 	}
 	var err error
 	if a.SSLKey != "" && a.SSLCert != "" {

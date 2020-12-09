@@ -21,7 +21,7 @@ go get github.com/nathants/reverseproxy
 ## usage
 
 ```
->>reverseproxy -h
+>> reverseproxy -h
 
 Usage: main [--addr ADDR] [--timeout TIMEOUT] [--ssl-cert SSL-CERT] [--ssl-key SSL-KEY] [--upstream UPSTREAM]
 
@@ -31,5 +31,5 @@ Options:
   --ssl-cert SSL-CERT, -c SSL-CERT
   --ssl-key SSL-KEY,   -k SSL-KEY
   --upstream UPSTREAM, -u UPSTREAM
-                         may specify multiple times. --upstream example.com=localhost:8080
+                         may specify upstreams: -u foo.com=localhost:8080 bar.com=localhost:8081
 ```
