@@ -6,7 +6,11 @@ simple reverse proxy should be easy
 
 ## what
 
-a reverse proxy allowing multiple upstreams by host name
+a reverse proxy for one or more http upstreams behind a single wildcard certificate.
+
+cert: *.example.com
+upstream1: one.example.com
+upstream2: two.example.com
 
 ## install
 

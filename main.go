@@ -33,6 +33,7 @@ func handler(ctx *fasthttp.RequestCtx) {
 	}
 	ctx.Request.CopyTo(req)
 	req.SetHost(upstream)
+	req.URI().SetScheme("http")
 	err := c.DoTimeout(req, res, timeout)
 	if err != nil {
 		ctx.SetStatusCode(500)
